@@ -6,10 +6,18 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using Projur.Domain.Commands;
+using Projur.Domain.Handlers;
+using Projur.Domain.Handlers.Contracts;
+using Projur.Domain.Repositories;
+using Projur.Infra.Contexts;
+using Projur.Infra.Repositories;
 
 namespace Projur.Api
 {
@@ -25,7 +33,19 @@ namespace Projur.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
+
+            services.AddDbContext<DataContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("connectionString")));
+
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IHandler<CreateUserCommand>, CreateUserCommandHandler>();
+            services.AddTransient<IHandler<UpdateUserCommand>, UpdateUserCommandHandler>();
+            services.AddTransient<IHandler<DeleteUserCommand>, DeleteUserCommandHandler>();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Projur.Api", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,6 +54,10 @@ namespace Projur.Api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger(options =>
+                {
+                    options.SerializeAsV2 = true;
+                });
             }
 
             app.UseHttpsRedirection();
@@ -41,7 +65,7 @@ namespace Projur.Api
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

@@ -1,0 +1,30 @@
+<mat-card>
+    <mat-card-title>Novo Usuário</mat-card-title>
+    <form [formGroup]="form">
+        <mat-form-field>
+            <input matInput placeholder="Nome" formControlName="name" [(ngModel)]="user.name" name="name">
+        </mat-form-field>
+        <mat-form-field>
+            <input matInput placeholder="Sobrenome" formControlName="surname" [(ngModel)]="user.surname" name="surname" >
+        </mat-form-field>
+        <mat-form-field>
+            <input matInput placeholder="Email" name="email" formControlName="email" [(ngModel)]="user.email" name="email" (ngModelChange)="validateEmail($event)">
+        </mat-form-field>
+        <div *ngIf="emailInvalido" style="color: red;">Por favor, digite um email válido!</div>
+        <mat-form-field>
+            <mat-select placeholder="Escolaridade" formControlName="schooling" [(ngModel)]="user.schooling" name="schooling">
+                <mat-option *ngFor="let schooling  of listSelectSchooling" [value]="schooling.value">
+                    {{ schooling.option }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+            <input matInput [matDatepicker]="picker" placeholder="Data de Nascimento" formControlName="birthDate" [(ngModel)]="user.birthDate" name="birthDate" (ngModelChange)="validateDate($event)">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+        <div *ngIf="dataInvalida" style="color: red;">A data de nascimento não pode ser maior que a data atual</div>
+    </form>
+    <button mat-raised-button (click)="createUser()" color="primary">Salvar</button>
+    <button mat-raised-button (click)="cancel()">Cancelar</button>
+</mat-card>
